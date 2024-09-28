@@ -1,4 +1,4 @@
-//multiple readers / single writer lock
+// Multiple readers / single writer lock
 export class Lock {
     readers: number;
     writers: number;
@@ -15,6 +15,7 @@ export class Lock {
             const reader = () => {
                 if (this.writers === 0) {
                     this.readers++;
+                    console.log(`Acquired read lock. Readers: ${this.readers}, Writers: ${this.writers}`);
                     resolve();
                 } else {
                     this.queue.push(reader);
@@ -29,6 +30,7 @@ export class Lock {
             const writer = () => {
                 if (this.writers === 0 && this.readers === 0) {
                     this.writers++;
+                    console.log(`Acquired write lock. Readers: ${this.readers}, Writers: ${this.writers}`);
                     resolve();
                 } else {
                     this.queue.push(writer);
@@ -40,6 +42,7 @@ export class Lock {
 
     releaseReadLock(): void {
         this.readers--;
+        console.log(`Released read lock. Readers: ${this.readers}, Writers: ${this.writers}`);
         if (this.readers === 0 && this.queue.length > 0) {
             this.queue.shift()(); 
         }
@@ -47,6 +50,7 @@ export class Lock {
 
     releaseWriteLock(): void {
         this.writers--;
+        console.log(`Released write lock. Readers: ${this.readers}, Writers: ${this.writers}`);
         if (this.queue.length > 0) {
             this.queue.shift()();
         }

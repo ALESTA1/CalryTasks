@@ -1,32 +1,33 @@
-import fs from 'fs'
-import path from 'path'
-import { Request } from 'types';
-const dbPath = path.join(__dirname, 'db', 'requests.json'); 
+import { promises as fs } from 'fs';  
+import path from 'path';
+import { Request } from './types';  
+const dbPath = path.join(__dirname, 'db', 'requests.json');
 
-export function initializeDatabase() {
-
-   
-    fs.writeFileSync(dbPath, JSON.stringify([]));
+export async function initializeDatabase() {
+    await fs.writeFile(dbPath, JSON.stringify([]));
     console.log('Database initialized with an empty array.');
 }
 
-export function writeMapToDB(requestMap: Map<string, Request>) {
-    
+export async function writeMapToDB(requestMap: Map<string, Request>) {
     const requestArray = Array.from(requestMap.values());
-    const jsonData = JSON.stringify(requestArray, null, 2); 
-    fs.writeFileSync(dbPath, jsonData);
+    const jsonData = JSON.stringify(requestArray, null, 2);
+    await fs.writeFile(dbPath, jsonData);
 }
 
-export function readMapFromDB(): Map<string, Request> {
+export async function readMapFromDB(): Promise<Map<string, Request>> {
     const requestMap = new Map<string, Request>();
 
-    if (fs.existsSync(dbPath)) {
-        const jsonData = fs.readFileSync(dbPath, 'utf8');
-        const requestArray: Request[] = JSON.parse(jsonData); 
-        requestArray.forEach(request => {
-            requestMap.set(request.id, request);
-        });
+    try {
+        if (await fs.access(dbPath).then(() => true).catch(() => false)) {
+            const jsonData = await fs.readFile(dbPath, 'utf8');
+            const requestArray: Request[] = JSON.parse(jsonData);
+            requestArray.forEach(request => {
+                requestMap.set(request.id, request);
+            });
+        }
+    } catch (error) {
+        console.error('Error reading from database:', error);
     }
 
-    return requestMap; 
+    return requestMap;
 }
